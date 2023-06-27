@@ -25,7 +25,7 @@ class CarInterface(CarInterfaceBase):
       ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.subaru)]
 
     if candidate == CAR.OUTBACK_2023:
-      ret.safetyConfigs[0].safetyParam |= Panda.FLAG_SUBARU_OUTBACK_2023
+      ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.subaruOutback2023)]
 
     if candidate in PREGLOBAL_CARS:
       ret.enableBsm = 0x25c in fingerprint[0]
