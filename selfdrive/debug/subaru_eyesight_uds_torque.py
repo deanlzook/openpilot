@@ -38,13 +38,9 @@ red_panda.set_safety_mode(Panda.SAFETY_OPENPORT)
 packer = CANPacker("subaru_global_2017_generated")
 
 while True:
-  msg = packer.make_can_msg("Steering_Torque", 2, {
-    "Steer_Warning": random.choice([True, False]),
-    "Steer_Error_1": random.choice([True, False]),
-    "Steer_Error_2": random.choice([True, False]),
-    "Steering_Angle": 0,#random.randint(-90, 90),
-    "Steer_Torque_Sensor": -2,
-    "Steer_Torque_Output": -1.3,
+  msg = packer.make_can_msg("Steering_Torque_2", 2, {
+    "Steer_Torque_Output": random.randint(-50,50),
+    "Steer_Torque_Sensor": random.randint(-50,50),
   })
 
   red_panda.can_send(msg[0], msg[2], msg[3])
