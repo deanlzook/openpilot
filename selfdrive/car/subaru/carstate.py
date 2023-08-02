@@ -1,3 +1,4 @@
+from collections import deque
 import copy
 from cereal import car
 from opendbc.can.can_define import CANDefine
@@ -15,6 +16,9 @@ class CarState(CarStateBase):
     self.shifter_values = can_define.dv["Transmission"]["Gear"]
 
     self.angle_rate_calulator = CanSignalRateCalculator(2)
+
+    HISTORY_SIZE = 100
+    self.steering_angle_history = deque([0,] * HISTORY_SIZE, HISTORY_SIZE)
 
   def update(self, cp, cp_cam, cp_body):
     ret = car.CarState.new_message()
@@ -50,6 +54,8 @@ class CarState(CarStateBase):
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
     ret.steeringAngleDeg = cp.vl["Steering_Torque"]["Steering_Angle"]
+
+    self.steering_angle_history.append(ret.steeringAngleDeg)
     
     if self.car_fingerprint in STEER_LIMITED_2020:
       # have not found a steering rate message. calculate it manually
