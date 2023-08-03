@@ -45,8 +45,8 @@ class CarController:
 
       if self.CP.carFingerprint in STEER_LIMITED_2020:
         # Steering rate fault prevention
-        steering_angle_diff = CS.steering_angle_history[0] - CS.steering_angle_history[50]
-        self.steer_rate_counter, apply_steer_req = common_fault_avoidance(steering_angle_diff, 8, apply_steer_req, self.steer_rate_counter, 16)
+        steering_angle_diff = CS.steering_angle_history[99] - CS.steering_angle_history[0]
+        self.steer_rate_counter, apply_steer_req = common_fault_avoidance(steering_angle_diff, 15, apply_steer_req, self.steer_rate_counter, 5)
 
       if self.CP.carFingerprint in PREGLOBAL_CARS:
         can_sends.append(subarucan.create_preglobal_steering_control(self.packer, apply_steer, CC.latActive))
