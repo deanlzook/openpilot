@@ -6,7 +6,7 @@ from selfdrive.car.subaru import subarucan
 from selfdrive.car.subaru.values import DBC, GLOBAL_GEN2, PREGLOBAL_CARS, CanBus, STEER_LIMITED_2020, CarControllerParams, SubaruFlags
 
 MAX_STEER_DELTA = 18 # deg
-MAX_STEER_DELTA_FRAMES = 12  # tx control frames needed before torque can be cut
+MAX_STEER_DELTA_FRAMES = 8  # tx control frames needed before torque can be cut
 
 MAX_STEER_ANGLE = 88
 
@@ -47,17 +47,9 @@ class CarController:
 
       if self.CP.carFingerprint in STEER_LIMITED_2020:
         # Steering rate fault prevention
-        history = np.array(CS.steering_angle_history)
-        steering_angle_delta_100 = (history[0] - history[100])
-        steering_angle_delta_50 = (history[0] - history[50]) * 2
-        steering_angle_delta_25 = (history[0] - history[25]) * 4
-
-        steering_angle_delta = max(steering_angle_delta_100, steering_angle_delta_50, steering_angle_delta_25)
+        steering_angle_delta = np.sum(np.abs(np.diff(np.array(CS.steering_angle_history)))) # total abs steering delta over last 100 frames
         self.steer_rate_counter, apply_steer_req = common_fault_avoidance(steering_angle_delta, MAX_STEER_DELTA, apply_steer_req,
                                                                           self.steer_rate_counter, MAX_STEER_DELTA_FRAMES)
-
-        if not apply_steer_req and CC.latActive:
-          print("limited!!")
 
       if self.CP.carFingerprint in PREGLOBAL_CARS:
         can_sends.append(subarucan.create_preglobal_steering_control(self.packer, apply_steer, CC.latActive))

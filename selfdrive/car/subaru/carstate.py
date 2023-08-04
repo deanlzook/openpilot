@@ -55,7 +55,7 @@ class CarState(CarStateBase):
 
     ret.steeringAngleDeg = cp.vl["Steering_Torque"]["Steering_Angle"]
 
-    self.steering_angle_history.insert(0, ret.steeringAngleDeg)
+    self.steering_angle_history.appendleft(ret.steeringAngleDeg)
     
     if self.car_fingerprint in STEER_LIMITED_2020:
       # have not found a steering rate message. calculate it manually
