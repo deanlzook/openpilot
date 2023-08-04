@@ -6,7 +6,7 @@ from selfdrive.car.subaru import subarucan
 from selfdrive.car.subaru.values import DBC, GLOBAL_GEN2, PREGLOBAL_CARS, CanBus, STEER_LIMITED_2020, CarControllerParams, SubaruFlags
 
 MAX_STEER_DELTA = 18 # deg
-MAX_STEER_DELTA_FRAMES = 8  # tx control frames needed before torque can be cut
+MAX_STEER_DELTA_FRAMES = 7 # tx control frames needed before torque can be cut
 
 MAX_STEER_ANGLE = 88
 
