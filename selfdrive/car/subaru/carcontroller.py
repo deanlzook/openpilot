@@ -1,12 +1,12 @@
 import numpy as np
 
 from opendbc.can.packer import CANPacker
-from selfdrive.car import apply_driver_steer_torque_limits, common_fault_avoidance
+from selfdrive.car import apply_driver_steer_torque_limits
 from selfdrive.car.subaru import subarucan
 from selfdrive.car.subaru.values import DBC, GLOBAL_GEN2, PREGLOBAL_CARS, CanBus, STEER_LIMITED_2020, CarControllerParams, SubaruFlags
 
 MAX_STEER_DELTA = 18 # deg
-MAX_STEER_DELTA_FRAMES = 7 # tx control frames needed before torque can be cut
+MAX_STEER_DELTA_FRAMES = 16 # Frames after a cut that we need
 
 MAX_STEER_ANGLE = 88
 
@@ -48,8 +48,14 @@ class CarController:
       if self.CP.carFingerprint in STEER_LIMITED_2020:
         # Steering rate fault prevention
         steering_angle_delta = np.sum(np.abs(np.diff(np.array(CS.steering_angle_history)))) # total abs steering delta over last 100 frames
-        self.steer_rate_counter, apply_steer_req = common_fault_avoidance(steering_angle_delta, MAX_STEER_DELTA, apply_steer_req,
-                                                                          self.steer_rate_counter, MAX_STEER_DELTA_FRAMES)
+      
+        if steering_angle_delta > MAX_STEER_DELTA:
+          self.steer_rate_counter += 1
+        else:
+          self.steer_rate_counter = 0
+          
+        if self.steer_rate_counter % MAX_STEER_DELTA_FRAMES == 1:
+          apply_steer_req = 0
 
       if self.CP.carFingerprint in PREGLOBAL_CARS:
         can_sends.append(subarucan.create_preglobal_steering_control(self.packer, apply_steer, CC.latActive))
