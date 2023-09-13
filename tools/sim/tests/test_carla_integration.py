@@ -37,9 +37,7 @@ class TestCarlaIntegration(unittest.TestCase):
 
   def test_engage(self):
     # Startup manager and bridge.py. Check processes are running, then engage and verify.
-    my_env = os.environ.copy()
-    my_env["PYTHONPATH"] = BASEDIR
-    p_manager = subprocess.Popen("./launch_openpilot.sh", cwd=SIM_DIR, env=my_env)
+    p_manager = subprocess.Popen("./launch_openpilot.sh", cwd=SIM_DIR)
     self.processes.append(p_manager)
 
     sm = messaging.SubMaster(['controlsState', 'carEvents', 'managerState'])

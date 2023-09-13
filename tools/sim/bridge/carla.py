@@ -12,6 +12,7 @@ class CarlaWorld(World):
     self.vc: carla.VehicleControl = carla.VehicleControl(throttle=0, steer=0, brake=0, reverse=False)
     self.vehicle = vehicle
     self.max_steer_angle: float = vehicle.get_physics_control().wheels[0].max_steer_angle
+    self.steer_ratio = 15
     self.camerad = camerad
     self.params = Params()
 
@@ -59,11 +60,11 @@ class CarlaWorld(World):
     yuv = self.camerad.rgb_to_yuv(self.carla_image_to_rgb(image))
     self.camerad.cam_send_yuv_wide_road(yuv)
 
-  def apply_controls(self, steer_sim, throttle_out, brake_out, _rk):
+  def apply_controls(self, steering_angle, throttle_out, brake_out, _rk):
     self.vc.throttle = throttle_out
-    self.vc.steer = steer_sim * 0.25
+    self.vc.steer = steering_angle * (self.max_steer_angle * self.steer_ratio * -1)
     self.vc.brake = brake_out
-    self.steer = steer_sim
+    self.steer = steering_angle
     self.vehicle.apply_control(self.vc)
 
   def read_sensors(self, simulator_state: SimulatorState):

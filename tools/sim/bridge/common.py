@@ -371,7 +371,7 @@ class SimulatorBridge(ABC):
         # TODO gas and brake is deprecated
         throttle_op = clip(sm['carControl'].actuators.accel / 1.6, 0.0, 1.0)
         brake_op = clip(-sm['carControl'].actuators.accel / 4.0, 0.0, 1.0)
-        steer_op = sm['carControl'].actuators.steer
+        steer_op = sm['carControl'].actuators.steeringAngleDeg
 
       throttle_out = throttle_op if is_openpilot_engaged else throttle_manual
       brake_out = brake_op if is_openpilot_engaged else brake_manual
