@@ -4,6 +4,7 @@ from opendbc.can.packer import CANPacker
 from opendbc.can.parser import CANParser
 from openpilot.selfdrive.boardd.boardd_api_impl import can_list_to_can_capnp
 from openpilot.selfdrive.car import crc8_pedal
+from openpilot.tools.sim.lib.common import SimulatorState
 
 packer = CANPacker("honda_civic_touring_2016_can_generated")
 rpacker = CANPacker("acura_ilx_2016_nidec")
@@ -19,13 +20,15 @@ def get_car_can_parser():
   return CANParser(dbc_f, checks, 0)
 cp = get_car_can_parser()
 
-def can_function(pm, speed, angle, idx, cruise_button, is_engaged):
+def can_function(pm, simulator_state: SimulatorState, idx):
+  if not simulator_state.valid:
+    return
 
   msg = []
 
   # *** powertrain bus ***
 
-  speed = speed * 3.6 # convert m/s to kph
+  speed = simulator_state.speed * 3.6 # convert m/s to kph
   msg.append(packer.make_can_msg("ENGINE_DATA", 0, {"XMISSION_SPEED": speed}))
   msg.append(packer.make_can_msg("WHEEL_SPEEDS", 0, {
     "WHEEL_SPEED_FL": speed,
@@ -34,10 +37,14 @@ def can_function(pm, speed, angle, idx, cruise_button, is_engaged):
     "WHEEL_SPEED_RR": speed
   }))
 
-  msg.append(packer.make_can_msg("SCM_BUTTONS", 0, {"CRUISE_BUTTONS": cruise_button}))
+  msg.append(packer.make_can_msg("SCM_BUTTONS", 0, {"CRUISE_BUTTONS": simulator_state.cruise_button}))
 
-  values = {"COUNTER_PEDAL": idx & 0xF}
-  checksum = crc8_pedal(packer.make_can_msg("GAS_SENSOR", 0, {"COUNTER_PEDAL": idx & 0xF})[2][:-1])
+  values = {
+    "COUNTER_PEDAL": idx & 0xF,
+    "INTERCEPTOR_GAS": simulator_state.user_gas * 2**12,
+    "INTERCEPTOR_GAS2": simulator_state.user_gas * 2**12,
+  }
+  checksum = crc8_pedal(packer.make_can_msg("GAS_SENSOR", 0, values)[2][:-1])
   values["CHECKSUM_PEDAL"] = checksum
   msg.append(packer.make_can_msg("GAS_SENSOR", 0, values))
 
@@ -45,16 +52,16 @@ def can_function(pm, speed, angle, idx, cruise_button, is_engaged):
   msg.append(packer.make_can_msg("GAS_PEDAL_2", 0, {}))
   msg.append(packer.make_can_msg("SEATBELT_STATUS", 0, {"SEATBELT_DRIVER_LATCHED": 1}))
   msg.append(packer.make_can_msg("STEER_STATUS", 0, {}))
-  msg.append(packer.make_can_msg("STEERING_SENSORS", 0, {"STEER_ANGLE": angle}))
+  msg.append(packer.make_can_msg("STEERING_SENSORS", 0, {"STEER_ANGLE": simulator_state.steering_angle}))
   msg.append(packer.make_can_msg("VSA_STATUS", 0, {}))
-  msg.append(packer.make_can_msg("STANDSTILL", 0, {"WHEELS_MOVING": 1 if speed >= 1.0 else 0}))
+  msg.append(packer.make_can_msg("STANDSTILL", 0, {"WHEELS_MOVING": 1 if simulator_state.speed >= 1.0 else 0}))
   msg.append(packer.make_can_msg("STEER_MOTOR_TORQUE", 0, {}))
   msg.append(packer.make_can_msg("EPB_STATUS", 0, {}))
   msg.append(packer.make_can_msg("DOORS_STATUS", 0, {}))
   msg.append(packer.make_can_msg("CRUISE_PARAMS", 0, {}))
   msg.append(packer.make_can_msg("CRUISE", 0, {}))
   msg.append(packer.make_can_msg("SCM_FEEDBACK", 0, {"MAIN_ON": 1}))
-  msg.append(packer.make_can_msg("POWERTRAIN_DATA", 0, {"ACC_STATUS": int(is_engaged)}))
+  msg.append(packer.make_can_msg("POWERTRAIN_DATA", 0, {"ACC_STATUS": int(simulator_state.is_engaged), "PEDAL_GAS": simulator_state.user_gas, "BRAKE_PRESSED": simulator_state.user_brake > 0}))
   msg.append(packer.make_can_msg("HUD_SETTING", 0, {}))
   msg.append(packer.make_can_msg("CAR_SPEED", 0, {}))
 

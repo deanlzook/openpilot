@@ -8,8 +8,8 @@ from multiprocessing import Queue
 from cereal import messaging
 from openpilot.common.basedir import BASEDIR
 from openpilot.selfdrive.manager.helpers import unblock_stdout
-from openpilot.tools.sim import bridge
-from openpilot.tools.sim.bridge import CarlaBridge
+from openpilot.tools.sim.run_bridge import parse_args
+from openpilot.tools.sim.bridge.carla import CarlaBridge
 
 CI = "CI" in os.environ
 
@@ -37,12 +37,14 @@ class TestCarlaIntegration(unittest.TestCase):
 
   def test_engage(self):
     # Startup manager and bridge.py. Check processes are running, then engage and verify.
-    p_manager = subprocess.Popen("./launch_openpilot.sh", cwd=SIM_DIR)
+    my_env = os.environ.copy()
+    my_env["PYTHONPATH"] = BASEDIR
+    p_manager = subprocess.Popen("./launch_openpilot.sh", cwd=SIM_DIR, env=my_env)
     self.processes.append(p_manager)
 
     sm = messaging.SubMaster(['controlsState', 'carEvents', 'managerState'])
     q = Queue()
-    carla_bridge = CarlaBridge(bridge.parse_args([]))
+    carla_bridge = CarlaBridge(parse_args([]))
     p_bridge = carla_bridge.run(q, retries=10)
     self.processes.append(p_bridge)
 
