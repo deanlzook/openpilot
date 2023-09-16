@@ -71,7 +71,7 @@ class MetaDriveBridge(SimulatorBridge):
   TICKS_PER_FRAME = 2
 
   def __init__(self, args):
-    self.should_render = True
+    self.should_render = False
 
     super(MetaDriveBridge, self).__init__(args)
 
@@ -92,7 +92,16 @@ class MetaDriveBridge(SimulatorBridge):
       assert isinstance(sensor, ImageBuffer), "This API is for adding image sensor"
       self.sensors[name] = sensor
 
+    def get_rgb_array_cpu(self):
+      origin_img = self.buffer.getDisplayRegion(0).getScreenshot()
+      img = np.frombuffer(origin_img.getRamImage().getData(), dtype=np.uint8)
+      img = img.reshape((origin_img.getYSize(), origin_img.getXSize(), 4))
+      # img = np.swapaxes(img, 1, 0)
+      img = img[..., :-1]
+      return img
+
     EngineCore.add_image_sensor = add_image_sensor_patched
+    ImageBuffer.get_rgb_array_cpu = get_rgb_array_cpu
 
     C3_POSITION = Vec3(0, 0, 1)
 
