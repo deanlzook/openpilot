@@ -160,4 +160,4 @@ class SimulatorBridge(ABC):
 
       self.started = True
 
-      rk.keep_time()
+      #rk.keep_time()

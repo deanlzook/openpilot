@@ -6,6 +6,16 @@ from openpilot.tools.sim.bridge.common import World, SimulatorBridge
 from openpilot.tools.sim.lib.common import vec3, SimulatorState
 from openpilot.tools.sim.lib.camerad import W, H
 
+
+SIZE = 2 ** 11
+
+def crop_center(img, cropx, cropy):
+    y, x, *_ = img.shape
+    startx = x // 2 - (cropx // 2)
+    starty = y // 2 - (cropy // 2)    
+    return img[starty:starty + cropy, startx:startx + cropx, ...]
+
+
 class MetaDriveWorld(World):
   def __init__(self, env, ticks_per_frame: float, dual_camera = False):
     super().__init__(dual_camera)
@@ -53,8 +63,8 @@ class MetaDriveWorld(World):
 
   def read_cameras(self):
     if self.dual_camera:
-     self.wide_road_image = self.get_cam_as_rgb("rgb_wide")
-    self.road_image = self.get_cam_as_rgb("rgb_road")
+     self.wide_road_image = crop_center(self.get_cam_as_rgb("rgb_wide"), W, H)
+    self.road_image = crop_center(self.get_cam_as_rgb("rgb_road"), W, H)
 
   def tick(self):
     obs, _, terminated, _, info = self.env.step(self.vc)
@@ -71,7 +81,7 @@ class MetaDriveBridge(SimulatorBridge):
   TICKS_PER_FRAME = 2
 
   def __init__(self, args):
-    self.should_render = False
+    self.should_render = True
 
     super(MetaDriveBridge, self).__init__(args)
 
@@ -122,11 +132,11 @@ class MetaDriveBridge(SimulatorBridge):
         lens.setFov(40)
 
     sensors = {
-      "rgb_road": (RGBCameraRoad, W, H, )
+      "rgb_road": (RGBCameraRoad, SIZE, SIZE, )
     }
 
     if self.dual_camera:
-      sensors["rgb_wide"] = (RGBCameraWide, W, H)
+      sensors["rgb_wide"] = (RGBCameraWide, SIZE, SIZE)
 
     env = MetaDriveEnv(
         dict(

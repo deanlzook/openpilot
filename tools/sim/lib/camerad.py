@@ -1,12 +1,10 @@
 import cv2
 import numpy as np
-import pyopencl as cl
-import pyopencl.array as cl_array
 
 from cereal.visionipc import VisionIpcServer, VisionStreamType
 from cereal import messaging
 
-from openpilot.common.basedir import BASEDIR
+from openpilot.tools.lib.framereader import rgb24tonv12
 from openpilot.tools.sim.lib.common import W, H
 
 class Camerad:
@@ -36,8 +34,7 @@ class Camerad:
     assert rgb.shape == (H, W, 3), f"{rgb.shape}"
     assert rgb.dtype == np.uint8
 
-    yuv = cv2.cvtColor(rgb, cv2.COLOR_RGB2YUV_I420)
-    return yuv.tobytes()
+    return rgb24tonv12(rgb).tobytes()
 
   def _send_yuv(self, yuv, frame_id, pub_type, yuv_type):
     eof = int(frame_id * 0.05 * 1e9)
