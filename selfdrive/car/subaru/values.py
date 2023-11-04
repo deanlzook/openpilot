@@ -437,6 +437,7 @@ FW_VERSIONS = {
   },
   CAR.FORESTER_PREGLOBAL: {
     (Ecu.abs, 0x7b0, None): [
+      b'm\x97\x14@',                       #added by dean 2017 forester
       b'\x7d\x97\x14\x40',
       b'\xf1\x00\xbb\x0c\x04',
     ],
@@ -452,6 +453,7 @@ FW_VERSIONS = {
     (Ecu.engine, 0x7e0, None): [
       b'\xba"@p\a',
       b'\xa7)\xa0q\a',
+      b'\xa7"@p\x07',                       #added by dean 2017 forester
       b'\xf1\x82\xa7)\xa0q\a',
       b'\xba"@@\a',
     ],
@@ -459,6 +461,7 @@ FW_VERSIONS = {
       b'\xdc\xf2\x60\x60\x00',
       b'\xdc\xf2@`\x00',
       b'\xda\xfd\xe0\x80\x00',
+      b'\xda\xf2`\x80\x00',                  #added by dean 2017 forester
       b'\xdc\xf2`\x81\000',
       b'\xdc\xf2`\x80\x00',
       b'\x1a\xf6F`\x00',
